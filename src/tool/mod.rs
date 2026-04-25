@@ -17,8 +17,9 @@ use crate::{auth, server::DomeneshopServer};
 #[tool_router(vis = "pub")]
 impl DomeneshopServer {
     #[tool(
-        description = "List all domains on the authenticated Domeneshop account. Returns a JSON \
-            array including each domain's id, name, expiry, registrar status, and enabled services."
+        description = "List all domains on the authenticated Domeneshop account as a JSON array \
+            of `{id, domain}` pairs. Use this for discovery, then call `get_domain` for full \
+            details on a specific domain."
     )]
     pub async fn list_domains(
         &self,
