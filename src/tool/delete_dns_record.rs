@@ -5,7 +5,7 @@ use crate::client::ApiClient;
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct Params {
-    /// Domain ID (from the `domeneshop://domains` resource).
+    /// Domain ID (from `list_domains`).
     pub domain_id: i64,
     /// ID of the DNS record to delete.
     pub record_id: i64,

@@ -1,15 +1,9 @@
 use rmcp::{
-    ErrorData as McpError, RoleServer, ServerHandler,
+    ServerHandler,
     handler::server::router::tool::ToolRouter,
-    model::{
-        ListResourceTemplatesResult, ListResourcesResult, PaginatedRequestParams,
-        ReadResourceRequestParams, ReadResourceResult, ServerCapabilities, ServerInfo,
-    },
-    service::RequestContext,
+    model::{ServerCapabilities, ServerInfo},
     tool_handler,
 };
-
-use crate::resource;
 
 #[derive(Clone)]
 pub struct DomeneshopServer {
@@ -42,39 +36,8 @@ impl ServerHandler for DomeneshopServer {
                  to api.domeneshop.no on every request and does not store them."
                     .into(),
             ),
-            capabilities: ServerCapabilities::builder()
-                .enable_tools()
-                .enable_resources()
-                .build(),
+            capabilities: ServerCapabilities::builder().enable_tools().build(),
             ..Default::default()
         }
-    }
-
-    async fn list_resources(
-        &self,
-        _req: Option<PaginatedRequestParams>,
-        ctx: RequestContext<RoleServer>,
-    ) -> Result<ListResourcesResult, McpError> {
-        resource::list(&ctx).await
-    }
-
-    async fn read_resource(
-        &self,
-        req: ReadResourceRequestParams,
-        ctx: RequestContext<RoleServer>,
-    ) -> Result<ReadResourceResult, McpError> {
-        resource::read(req, &ctx).await
-    }
-
-    async fn list_resource_templates(
-        &self,
-        _req: Option<PaginatedRequestParams>,
-        _ctx: RequestContext<RoleServer>,
-    ) -> Result<ListResourceTemplatesResult, McpError> {
-        Ok(ListResourceTemplatesResult {
-            resource_templates: resource::templates(),
-            next_cursor: None,
-            meta: None,
-        })
     }
 }

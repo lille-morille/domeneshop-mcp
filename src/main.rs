@@ -2,7 +2,6 @@ mod api;
 mod auth;
 mod client;
 mod config;
-mod resource;
 mod server;
 mod tool;
 

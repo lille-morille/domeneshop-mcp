@@ -1,6 +1,8 @@
 pub mod create_dns_record;
 pub mod delete_dns_record;
 mod dns;
+pub mod get_domain;
+pub mod list_domains;
 pub mod update_dns_record;
 
 use rmcp::{
@@ -14,6 +16,31 @@ use crate::{auth, server::DomeneshopServer};
 
 #[tool_router(vis = "pub")]
 impl DomeneshopServer {
+    #[tool(
+        description = "List all domains on the authenticated Domeneshop account. Returns a JSON \
+            array including each domain's id, name, expiry, registrar status, and enabled services."
+    )]
+    pub async fn list_domains(
+        &self,
+        ctx: RequestContext<RoleServer>,
+    ) -> Result<String, McpError> {
+        let client = auth::api_client_for(&ctx)?;
+        list_domains::handle(&client).await
+    }
+
+    #[tool(
+        description = "Fetch a single domain by id. Returns the same shape as one entry from \
+            `list_domains`."
+    )]
+    pub async fn get_domain(
+        &self,
+        Parameters(params): Parameters<get_domain::Params>,
+        ctx: RequestContext<RoleServer>,
+    ) -> Result<String, McpError> {
+        let client = auth::api_client_for(&ctx)?;
+        get_domain::handle(&client, params).await
+    }
+
     #[tool(
         description = "Create a new DNS record on a Domeneshop-managed domain. \
             Supports A, AAAA, CNAME, MX, SRV, TLSA, and TXT."

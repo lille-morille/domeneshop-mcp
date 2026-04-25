@@ -8,7 +8,7 @@ use super::dns::{RecordType, build_dns_record};
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct Params {
-    /// Domain ID (from the `domeneshop://domains` resource).
+    /// Domain ID (from `list_domains`).
     pub domain_id: i64,
     /// DNS record type.
     #[serde(rename = "type")]
