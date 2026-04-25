@@ -1,7 +1,7 @@
 use rmcp::ErrorData as McpError;
 use serde::Deserialize;
 
-use crate::api::types::*;
+use crate::api::types::DnsRecord;
 use crate::client::ApiClient;
 
 use super::dns::{RecordType, build_dns_record};
@@ -20,7 +20,7 @@ pub struct Params {
     /// TTL in seconds. Multiple of 60, 60-604800. Defaults to 3600.
     #[serde(default)]
     pub ttl: Option<i64>,
-    /// Target value (see create_dns_record for format per type).
+    /// Target value (see `create_dns_record` for format per type).
     pub data: String,
     #[serde(default)]
     pub priority: Option<i16>,

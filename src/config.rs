@@ -1,6 +1,7 @@
 pub const DEFAULT_BASE_URL: &str = "https://api.domeneshop.no/v0";
 pub const DEFAULT_BIND: &str = "127.0.0.1:3000";
 
+#[derive(Debug)]
 pub struct Config {
     pub base_url: String,
     pub bind: String,

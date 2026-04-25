@@ -1,7 +1,7 @@
 use rmcp::ErrorData as McpError;
 use serde::Deserialize;
 
-use crate::api::types::*;
+use crate::api::types::DnsRecord;
 use crate::client::ApiClient;
 
 use super::dns::{RecordType, build_dns_record};
@@ -56,6 +56,6 @@ pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
     let id = resp.into_inner().id;
     Ok(format!(
         "Created {record_type:?} record for host {host:?} on domain {domain_id} (id: {})",
-        id.map(|v| v.to_string()).unwrap_or_else(|| "unknown".into())
+        id.map_or_else(|| "unknown".into(), |v| v.to_string())
     ))
 }

@@ -6,7 +6,10 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use rmcp::ErrorData as McpError;
 use serde::Deserialize;
 
-use crate::api::types::*;
+use crate::api::types::{
+    A, AType, Aaaa, AaaaType, Cname, CnameType, DnsRecord, Mx, MxType, Srv, SrvType, Tlsa,
+    TlsaType, Txt, TxtType,
+};
 
 use super::create_dns_record;
 

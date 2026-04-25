@@ -25,13 +25,13 @@ pub async fn list(
 
     // Try to enumerate per-domain DNS resources; fall back silently if auth
     // is missing or the upstream call fails so initial discovery still works.
-    if let Ok(client) = auth::api_client_for(ctx, &server.base_url) {
-        if let Ok(domains) = fetch_domains(&client).await {
-            for d in domains {
-                let Some(id) = d.id else { continue };
-                let descriptor = list_dns_records::descriptor_for(id as i64, d.domain.as_deref());
-                resources.push(Annotated::new(descriptor, None));
-            }
+    if let Ok(client) = auth::api_client_for(ctx, &server.base_url)
+        && let Ok(domains) = fetch_domains(&client).await
+    {
+        for d in domains {
+            let Some(id) = d.id else { continue };
+            let descriptor = list_dns_records::descriptor_for(i64::from(id), d.domain.as_deref());
+            resources.push(Annotated::new(descriptor, None));
         }
     }
 

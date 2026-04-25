@@ -35,7 +35,7 @@ pub fn build(authorization: HeaderValue, base_url: &str) -> Result<ApiClient, Mc
     Ok(ApiClient {
         generated,
         http,
-        base_url: base_url.to_string(),
+        base_url: base_url.to_owned(),
     })
 }
 

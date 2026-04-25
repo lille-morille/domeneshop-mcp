@@ -1,23 +1,24 @@
-use std::{env, fs, path::Path};
+use std::{env, error::Error, fs, path::Path};
 
 use serde_json::Value;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let src = "openapi.json";
     println!("cargo:rerun-if-changed={src}");
 
-    let mut raw: Value = serde_json::from_reader(fs::File::open(src).unwrap()).unwrap();
+    let mut raw: Value = serde_json::from_reader(fs::File::open(src)?)?;
     inject_operation_ids(&mut raw);
     inline_subproperty_refs(&mut raw);
-    let spec = serde_json::from_value(raw).unwrap();
+    let spec = serde_json::from_value(raw)?;
 
     let mut generator = progenitor::Generator::default();
-    let tokens = generator.generate_tokens(&spec).unwrap();
-    let ast = syn::parse2(tokens).unwrap();
+    let tokens = generator.generate_tokens(&spec)?;
+    let ast = syn::parse2(tokens)?;
     let content = prettyplease::unparse(&ast);
 
-    let out = Path::new(&env::var("OUT_DIR").unwrap()).join("codegen.rs");
-    fs::write(out, content).unwrap();
+    let out = Path::new(&env::var("OUT_DIR")?).join("codegen.rs");
+    fs::write(out, content)?;
+    Ok(())
 }
 
 fn inject_operation_ids(doc: &mut Value) {
@@ -52,36 +53,37 @@ fn inject_operation_ids(doc: &mut Value) {
 /// in-place by replacing the `$ref` with the target schema object.
 fn inline_subproperty_refs(doc: &mut Value) {
     let root = doc.clone();
-    fn visit(node: &mut Value, root: &Value) {
-        match node {
-            Value::Object(map) => {
-                if let Some(Value::String(r)) = map.get("$ref") {
-                    if let Some(stripped) = r.strip_prefix("#/") {
-                        let has_subproperty = stripped
-                            .split('/')
-                            .skip(3)
-                            .any(|seg| seg == "properties" || seg == "items");
-                        if has_subproperty {
-                            if let Some(resolved) = resolve_pointer(root, stripped) {
-                                *node = resolved.clone();
-                                return;
-                            }
-                        }
-                    }
-                }
-                for v in map.values_mut() {
-                    visit(v, root);
-                }
-            }
-            Value::Array(arr) => {
-                for v in arr {
-                    visit(v, root);
+    visit_subproperty_refs(doc, &root);
+}
+
+fn visit_subproperty_refs(node: &mut Value, root: &Value) {
+    match node {
+        Value::Object(map) => {
+            if let Some(Value::String(r)) = map.get("$ref")
+                && let Some(stripped) = r.strip_prefix("#/")
+            {
+                let has_subproperty = stripped
+                    .split('/')
+                    .skip(3)
+                    .any(|seg| seg == "properties" || seg == "items");
+                if has_subproperty
+                    && let Some(resolved) = resolve_pointer(root, stripped)
+                {
+                    *node = resolved.clone();
+                    return;
                 }
             }
-            _ => {}
+            for v in map.values_mut() {
+                visit_subproperty_refs(v, root);
+            }
         }
+        Value::Array(arr) => {
+            for v in arr {
+                visit_subproperty_refs(v, root);
+            }
+        }
+        _ => {}
     }
-    visit(doc, &root);
 }
 
 fn resolve_pointer<'a>(root: &'a Value, pointer: &str) -> Option<&'a Value> {
@@ -101,7 +103,7 @@ fn synth_operation_id(method: &str, path: &str) -> String {
     let segments: Vec<String> = path
         .split('/')
         .filter(|s| !s.is_empty())
-        .map(|s| s.trim_start_matches('{').trim_end_matches('}').to_string())
+        .map(|s| s.trim_start_matches('{').trim_end_matches('}').to_owned())
         .collect();
     format!("{}_{}", method, segments.join("_"))
 }

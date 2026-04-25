@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
     tracing::info!(addr = %cfg.bind, "listening");
     axum::serve(listener, app)
         .with_graceful_shutdown(async move {
-            let _ = tokio::signal::ctrl_c().await;
+            tokio::signal::ctrl_c().await.ok();
             ct.cancel();
         })
         .await?;
