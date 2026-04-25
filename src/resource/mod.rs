@@ -10,22 +10,19 @@ use rmcp::{
     service::RequestContext,
 };
 
-use crate::{api, auth, client::ApiClient, server::DomeneshopServer};
+use crate::{api, auth, client::ApiClient};
 
 pub fn templates() -> Vec<ResourceTemplate> {
     vec![Annotated::new(list_dns_records::template(), None)]
 }
 
-pub async fn list(
-    server: &DomeneshopServer,
-    ctx: &RequestContext<RoleServer>,
-) -> Result<ListResourcesResult, McpError> {
+pub async fn list(ctx: &RequestContext<RoleServer>) -> Result<ListResourcesResult, McpError> {
     let mut resources: Vec<Resource> =
         vec![Annotated::new(list_domains::descriptor(), None)];
 
     // Try to enumerate per-domain DNS resources; fall back silently if auth
     // is missing or the upstream call fails so initial discovery still works.
-    if let Ok(client) = auth::api_client_for(ctx, &server.base_url)
+    if let Ok(client) = auth::api_client_for(ctx)
         && let Ok(domains) = fetch_domains(&client).await
     {
         for d in domains {
@@ -43,11 +40,10 @@ pub async fn list(
 }
 
 pub async fn read(
-    server: &DomeneshopServer,
     req: ReadResourceRequestParams,
     ctx: &RequestContext<RoleServer>,
 ) -> Result<ReadResourceResult, McpError> {
-    let client = auth::api_client_for(ctx, &server.base_url)?;
+    let client = auth::api_client_for(ctx)?;
     let contents = if req.uri == list_domains::URI {
         list_domains::read(&client).await?
     } else if let Some(domain_id) = list_dns_records::parse_uri(&req.uri) {

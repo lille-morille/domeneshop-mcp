@@ -23,12 +23,11 @@ async fn main() -> Result<()> {
         .init();
 
     let cfg = Config::from_env();
-    tracing::info!(base_url = %cfg.base_url, bind = %cfg.bind, "starting domeneshop-mcp");
+    tracing::info!(bind = %cfg.bind, "starting domeneshop-mcp");
 
     let ct = CancellationToken::new();
-    let base_url = cfg.base_url.clone();
     let mcp = StreamableHttpService::new(
-        move || Ok(DomeneshopServer::new(base_url.clone())),
+        || Ok(DomeneshopServer::new()),
         LocalSessionManager::default().into(),
         StreamableHttpServerConfig {
             cancellation_token: ct.child_token(),

@@ -23,7 +23,7 @@ impl DomeneshopServer {
         Parameters(params): Parameters<create_dns_record::Params>,
         ctx: RequestContext<RoleServer>,
     ) -> Result<String, McpError> {
-        let client = auth::api_client_for(&ctx, &self.base_url)?;
+        let client = auth::api_client_for(&ctx)?;
         create_dns_record::handle(&client, params).await
     }
 
@@ -36,7 +36,7 @@ impl DomeneshopServer {
         Parameters(params): Parameters<update_dns_record::Params>,
         ctx: RequestContext<RoleServer>,
     ) -> Result<String, McpError> {
-        let client = auth::api_client_for(&ctx, &self.base_url)?;
+        let client = auth::api_client_for(&ctx)?;
         update_dns_record::handle(&client, params).await
     }
 
@@ -46,7 +46,7 @@ impl DomeneshopServer {
         Parameters(params): Parameters<delete_dns_record::Params>,
         ctx: RequestContext<RoleServer>,
     ) -> Result<String, McpError> {
-        let client = auth::api_client_for(&ctx, &self.base_url)?;
+        let client = auth::api_client_for(&ctx)?;
         delete_dns_record::handle(&client, params).await
     }
 }

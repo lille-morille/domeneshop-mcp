@@ -9,10 +9,7 @@ use crate::client::{self, ApiClient};
 ///
 /// The MCP server itself holds no Domeneshop credentials — every user's client
 /// must send `Authorization: Basic <base64(token_name:secret)>` on each request.
-pub fn api_client_for(
-    ctx: &RequestContext<RoleServer>,
-    base_url: &str,
-) -> Result<ApiClient, McpError> {
+pub fn api_client_for(ctx: &RequestContext<RoleServer>) -> Result<ApiClient, McpError> {
     let parts = ctx.extensions.get::<Parts>().ok_or_else(|| {
         McpError::internal_error(
             "request is missing HTTP parts; is the server configured for streamable-http?",
@@ -20,7 +17,7 @@ pub fn api_client_for(
         )
     })?;
     let auth = authorization_header(parts)?;
-    client::build(auth, base_url)
+    client::build(auth)
 }
 
 fn authorization_header(parts: &Parts) -> Result<HeaderValue, McpError> {

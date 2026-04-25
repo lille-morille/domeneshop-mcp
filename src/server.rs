@@ -13,16 +13,20 @@ use crate::resource;
 
 #[derive(Clone)]
 pub struct DomeneshopServer {
-    pub base_url: String,
     pub tool_router: ToolRouter<Self>,
 }
 
 impl DomeneshopServer {
-    pub fn new(base_url: String) -> Self {
+    pub fn new() -> Self {
         Self {
-            base_url,
             tool_router: Self::tool_router(),
         }
+    }
+}
+
+impl Default for DomeneshopServer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -51,7 +55,7 @@ impl ServerHandler for DomeneshopServer {
         _req: Option<PaginatedRequestParams>,
         ctx: RequestContext<RoleServer>,
     ) -> Result<ListResourcesResult, McpError> {
-        resource::list(self, &ctx).await
+        resource::list(&ctx).await
     }
 
     async fn read_resource(
@@ -59,7 +63,7 @@ impl ServerHandler for DomeneshopServer {
         req: ReadResourceRequestParams,
         ctx: RequestContext<RoleServer>,
     ) -> Result<ReadResourceResult, McpError> {
-        resource::read(self, req, &ctx).await
+        resource::read(req, &ctx).await
     }
 
     async fn list_resource_templates(
