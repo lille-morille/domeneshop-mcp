@@ -9,7 +9,7 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            bind: std::env::var("DOMENESHOP_MCP_BIND").unwrap_or_else(|_| DEFAULT_BIND.into()),
+            bind: std::env::var("BIND").unwrap_or_else(|_| DEFAULT_BIND.into()),
         }
     }
 }
