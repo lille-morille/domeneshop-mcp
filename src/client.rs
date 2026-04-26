@@ -16,11 +16,10 @@ pub struct ApiClient {
     pub http: reqwest::Client,
 }
 
-pub fn build(authorization: HeaderValue) -> Result<ApiClient, McpError> {
-    let mut auth = authorization;
-    auth.set_sensitive(true);
+pub fn build(mut authorization: HeaderValue) -> Result<ApiClient, McpError> {
+    authorization.set_sensitive(true);
     let mut headers = HeaderMap::new();
-    headers.insert(AUTHORIZATION, auth);
+    headers.insert(AUTHORIZATION, authorization);
 
     let http = reqwest::Client::builder()
         .default_headers(headers)
