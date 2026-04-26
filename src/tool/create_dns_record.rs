@@ -8,8 +8,8 @@ use super::dns::{RecordType, build_dns_record};
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct Params {
-    /// Domain ID (from `list_domains`).
-    pub domain_id: i64,
+    /// Domain name (e.g. `example.com`).
+    pub domain: String,
     /// DNS record type.
     #[serde(rename = "type")]
     pub record_type: RecordType,
@@ -42,7 +42,8 @@ pub struct Params {
 }
 
 pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
-    let domain_id = p.domain_id;
+    let domain_id = client.domain_id_by_name(&p.domain).await?;
+    let domain = p.domain.clone();
     let record_type = p.record_type;
     let host = p.host.clone();
     let body: DnsRecord = build_dns_record(p, 0)?;
@@ -55,7 +56,7 @@ pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
 
     let id = resp.into_inner().id;
     Ok(format!(
-        "Created {record_type:?} record for host {host:?} on domain {domain_id} (id: {})",
+        "Created {record_type:?} record for host {host:?} on domain {domain} (id: {})",
         id.map_or_else(|| "unknown".into(), |v| v.to_string())
     ))
 }

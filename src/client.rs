@@ -58,4 +58,37 @@ impl ApiClient {
         }
         Ok(body)
     }
+
+    /// Resolve a domain name to its Domeneshop numeric id.
+    ///
+    /// The upstream `?domain=` filter is a substring match, so we filter the
+    /// returned list client-side for an exact match on the `domain` field.
+    pub async fn domain_id_by_name(&self, name: &str) -> Result<i64, McpError> {
+        let url = format!("{BASE_URL}/domains");
+        let resp = self
+            .http
+            .get(&url)
+            .query(&[("domain", name)])
+            .send()
+            .await
+            .map_err(|e| McpError::internal_error(format!("GET {url}: {e}"), None))?;
+        let status = resp.status();
+        let body = resp
+            .text()
+            .await
+            .map_err(|e| McpError::internal_error(format!("reading {url}: {e}"), None))?;
+        if !status.is_success() {
+            return Err(McpError::internal_error(
+                format!("Domeneshop API {status} for {url}: {body}"),
+                None,
+            ));
+        }
+        let domains: Vec<serde_json::Value> = serde_json::from_str(&body)
+            .map_err(|e| McpError::internal_error(format!("parsing /domains: {e}"), None))?;
+        let id = domains
+            .iter()
+            .find(|d| d.get("domain").and_then(serde_json::Value::as_str) == Some(name))
+            .and_then(|d| d.get("id").and_then(serde_json::Value::as_i64));
+        id.ok_or_else(|| McpError::invalid_params(format!("domain {name:?} not found"), None))
+    }
 }

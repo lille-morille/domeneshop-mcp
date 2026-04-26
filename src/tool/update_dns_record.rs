@@ -8,8 +8,8 @@ use super::dns::{RecordType, build_dns_record};
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct Params {
-    /// Domain ID (from `list_domains`).
-    pub domain_id: i64,
+    /// Domain name (e.g. `example.com`).
+    pub domain: String,
     /// ID of the record to update.
     pub record_id: i64,
     /// DNS record type.
@@ -37,7 +37,8 @@ pub struct Params {
 }
 
 pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
-    let domain_id = p.domain_id;
+    let domain_id = client.domain_id_by_name(&p.domain).await?;
+    let domain = p.domain.clone();
     let record_id = p.record_id;
 
     // The API's DnsRecord body carries an `id` in its BaseRecord slot.
@@ -50,12 +51,12 @@ pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
         .await
         .map_err(|e| McpError::internal_error(format!("Domeneshop API error: {e}"), None))?;
 
-    Ok(format!("Updated DNS record {record_id} on domain {domain_id}"))
+    Ok(format!("Updated DNS record {record_id} on domain {domain}"))
 }
 
 fn create_from_update(p: Params) -> super::create_dns_record::Params {
     super::create_dns_record::Params {
-        domain_id: p.domain_id,
+        domain: p.domain,
         record_type: p.record_type,
         host: p.host,
         ttl: p.ttl,

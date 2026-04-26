@@ -6,23 +6,20 @@ use crate::client::ApiClient;
 
 #[derive(Debug, Deserialize, schemars::JsonSchema)]
 pub struct Params {
-    /// Domain ID (from `list_domains`).
-    pub domain_id: i64,
+    /// Domain name (e.g. `example.com`).
+    pub domain: String,
 }
 
 pub async fn handle(client: &ApiClient, p: Params) -> Result<String, McpError> {
-    let body = client
-        .fetch_text(&format!("/domains/{}", p.domain_id))
-        .await?;
-    let mut domain: Value = serde_json::from_str(&body).map_err(|e| {
-        McpError::internal_error(format!("parsing /domains/{}: {e}", p.domain_id), None)
-    })?;
+    let id = client.domain_id_by_name(&p.domain).await?;
+    let body = client.fetch_text(&format!("/domains/{id}")).await?;
+    let mut domain: Value = serde_json::from_str(&body)
+        .map_err(|e| McpError::internal_error(format!("parsing /domains/{id}: {e}"), None))?;
     if let Some(obj) = domain.as_object_mut() {
         obj.remove("registrant");
         obj.remove("renew");
         obj.remove("services");
     }
-    serde_json::to_string(&domain).map_err(|e| {
-        McpError::internal_error(format!("serializing /domains/{}: {e}", p.domain_id), None)
-    })
+    serde_json::to_string(&domain)
+        .map_err(|e| McpError::internal_error(format!("serializing /domains/{id}: {e}"), None))
 }
